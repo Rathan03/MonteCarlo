@@ -10,6 +10,7 @@ add_library(MonteCarlo
     src/statistics.cpp
     src/GBM.cpp
     src/payoff.cpp
+    src/montecarlopricer.cpp
 )
 
 target_include_directories(MonteCarlo PUBLIC include)
@@ -32,6 +33,7 @@ add_executable(
     tests/statistics_test.cpp
     tests/GBM_test.cpp
     tests/payoff_test.cpp
+    tests/montecarlopricer_test.cpp
 )
 
 target_link_libraries(
