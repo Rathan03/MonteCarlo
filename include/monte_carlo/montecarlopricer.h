@@ -14,6 +14,7 @@ namespace MonteCarlo
                 double standard_error;
             };
             MonteCarloResult price();
+            MonteCarloResult price_antithetic();
 
         private:
             int timesteps_per_year;

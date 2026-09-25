@@ -114,3 +114,112 @@ TEST(GBM_Tests, Strictly_Positive)
         EXPECT_TRUE(price >0);
     }
 }
+
+TEST(GBM_Tests, Strictly_Positive_Antithetic)
+{
+    RandomGenerator generator_1(1234);
+    RandomGenerator generator_2(1234);
+
+    auto result_1 = GBM::simulate_antithetic(100,2,100,0.2,0.05, generator_1);
+    auto result_2 = GBM::simulate_antithetic(100,2,100,0.2,0.05, generator_2);
+
+    EXPECT_EQ(result_1.first, result_2.first);
+    EXPECT_EQ(result_1.second, result_2.second);
+}
+
+TEST(GBM_Test, Antithetic_Terminal_Price)
+{
+    RandomGenerator generator(1234);
+    RandomGenerator expected_generator(1234);
+
+    double initial_price = 100;
+    double years = 1;
+    int timesteps = 10;
+    double vol = 0.2;
+    double risk_free_rate = 0.05;
+
+    auto result = GBM::simulate_antithetic(
+        initial_price,
+        years,
+        timesteps,
+        vol,
+        risk_free_rate,
+        generator
+    );
+
+    double dt = years / timesteps;
+
+    double expected_positive = initial_price;
+    double expected_negative = initial_price;
+
+    for (int i{}; i < timesteps; i++)
+    {
+        double z = expected_generator.get_normal();
+
+        expected_positive *= std::exp(
+            (risk_free_rate - 0.5 * vol * vol) * dt
+            + vol * std::sqrt(dt) * z
+        );
+
+        expected_negative *= std::exp(
+            (risk_free_rate - 0.5 * vol * vol) * dt
+            - vol * std::sqrt(dt) * z
+        );
+    }
+
+    EXPECT_DOUBLE_EQ(result.first, expected_positive);
+    EXPECT_DOUBLE_EQ(result.second, expected_negative);
+}
+
+TEST(GBM_Test, Antithetic_Path)
+{
+    RandomGenerator generator(1234);
+
+    double initial_price = 100;
+    int timesteps = 10;
+
+    auto result = GBM::simulate_path_antithetic(
+        initial_price,
+        1,
+        timesteps,
+        0.2,
+        0.05,
+        generator
+    );
+
+    const auto& positive_path = result.first;
+    const auto& negative_path = result.second;
+
+    EXPECT_EQ(positive_path.size(), timesteps + 1);
+    EXPECT_EQ(negative_path.size(), timesteps + 1);
+
+    EXPECT_DOUBLE_EQ(positive_path.front(), initial_price);
+    EXPECT_DOUBLE_EQ(negative_path.front(), initial_price);
+
+    for (double price : positive_path)
+    {
+        EXPECT_GT(price, 0);
+    }
+
+    for (double price : negative_path)
+    {
+        EXPECT_GT(price, 0);
+    }
+}
+
+TEST(GBM_Test, Antithetic_Path_Reproducibility)
+{
+    RandomGenerator generator_1(1234);
+    RandomGenerator generator_2(1234);
+
+    auto result_1 = GBM::simulate_path_antithetic(
+        100, 1, 10, 0.2, 0.05, generator_1
+    );
+
+    auto result_2 = GBM::simulate_path_antithetic(
+        100, 1, 10, 0.2, 0.05, generator_2
+    );
+
+    EXPECT_EQ(result_1.first, result_2.first);
+    EXPECT_EQ(result_1.second, result_2.second);
+}

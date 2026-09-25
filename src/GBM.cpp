@@ -97,7 +97,7 @@ namespace MonteCarlo
         return std::make_pair(current_pos, current_neg);
     }
 
-    std::pair<std::vector<double>,std::vector<double>> simulate_path_antithetic(double initial_price, double years, int number_of_timesteps, double vol, double risk_free_rate, RandomGenerator& generator)
+    std::pair<std::vector<double>,std::vector<double>> GBM::simulate_path_antithetic(double initial_price, double years, int number_of_timesteps, double vol, double risk_free_rate, RandomGenerator& generator)
     {
         if (initial_price <= 0)
         {

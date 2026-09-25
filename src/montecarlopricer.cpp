@@ -5,6 +5,7 @@
 
 #include <stdexcept>
 #include <cmath>
+#include <utility>
 
 namespace MonteCarlo
 {
@@ -50,4 +51,35 @@ namespace MonteCarlo
         return results;
     }
 
+    MonteCarloPricer::MonteCarloResult MonteCarloPricer::price_antithetic()
+    {
+        if (option_type != OptionType::Call && option_type != OptionType::Put && option_type != OptionType::AsianCall && option_type != OptionType::AsianPut)
+        {
+            throw std::invalid_argument("Option type is not supported.");
+        }
+        
+        int timesteps = static_cast<int>(std::round(timesteps_per_year*years));
+        std::vector<double> payoffs;
+        payoffs.reserve(number_of_paths);
+        MonteCarloResult results;
+        if (option_type == OptionType::Call || option_type == OptionType::Put)
+        {
+            for (int i{}; i < number_of_paths; i++)
+            {
+                auto [pos, neg] = GBM::simulate_antithetic(initial_price, years, timesteps, vol, risk_free_rate, generator);
+                payoffs.push_back((Payoff{pos}.calculate_payoff(option_type, strike) + Payoff{neg}.calculate_payoff(option_type, strike))/2.0);
+            }
+        } else 
+        {
+            for (int i{}; i < number_of_paths; i++)
+            {   
+                auto [pos, neg] = GBM::simulate_path_antithetic(initial_price, years, timesteps, vol, risk_free_rate, generator);
+                payoffs.push_back((Payoff{std::move(pos)}.calculate_payoff(option_type, strike) + Payoff{std::move(neg)}.calculate_payoff(option_type, strike))/2.0);
+            }
+        }
+        double discount_factor = std::exp(- risk_free_rate * years);
+        results.price = discount_factor * Statistics::mean(payoffs);
+        results.standard_error = discount_factor * Statistics::std_err(payoffs);
+        return results;
+    }
 }
