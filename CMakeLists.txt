@@ -9,6 +9,7 @@ add_library(MonteCarlo
     src/random_generator.cpp
     src/statistics.cpp
     src/GBM.cpp
+    src/payoff.cpp
 )
 
 target_include_directories(MonteCarlo PUBLIC include)
@@ -30,6 +31,7 @@ add_executable(
     tests/random_generator_test.cpp
     tests/statistics_test.cpp
     tests/GBM_test.cpp
+    tests/payoff_test.cpp
 )
 
 target_link_libraries(
