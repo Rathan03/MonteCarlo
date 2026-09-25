@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_library(MonteCarlo
     src/random_generator.cpp
     src/statistics.cpp
+    src/GBM.cpp
 )
 
 target_include_directories(MonteCarlo PUBLIC include)
@@ -28,6 +29,7 @@ add_executable(
     MonteCarloTests
     tests/random_generator_test.cpp
     tests/statistics_test.cpp
+    tests/GBM_test.cpp
 )
 
 target_link_libraries(
